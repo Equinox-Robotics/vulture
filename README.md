@@ -1,2 +1,2 @@
 # vulture
-Equinox robotics vulture drone code
+Equinox robotics vulture drone code monorepo :)
