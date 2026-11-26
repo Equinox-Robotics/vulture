@@ -1,42 +1,98 @@
+import math
+
 import bpy
+import random
+
+
+def import_glb_grouped_at_point(filepath, target_location):
+    existing_objects = set(bpy.data.objects)
+    bpy.ops.import_scene.gltf(filepath=filepath)
+    imported_objects = [obj for obj in bpy.data.objects if obj not in existing_objects]
+
+    # Create an Empty at the target location
+    root_empty = bpy.data.objects.new("GLB_Root", None)
+    root_empty.location = target_location
+    root_empty.rotation_euler = (0, 0, math.radians(random.randint(0,360)))
+
+    bpy.context.collection.objects.link(root_empty)
+
+    # Parent top-level imported objects to the Empty
+    for obj in imported_objects:
+        if obj.parent is None:
+            obj.parent = root_empty
 
 def main() -> None:
-    # 1. Clear existing objects in the scene
+    # clear objects
     bpy.ops.wm.read_factory_settings(use_empty=True)
 
-    # 2. Add a cube and get a reference to it
-    bpy.ops.mesh.primitive_cube_add(size=2, location=(0, 0, 0))
-    cube = bpy.context.active_object
+    # add objects2
+    for x in range(-5,5):
+        for y in range(-5,5):
+            if random.random() > 0.8:
+                x_loc = x*10
+                y_loc = y*10
+                import_glb_grouped_at_point(
+                    "../../assets/" + random.choices(
+                        population = ["dead_tree.glb", "tree2.glb", "abandoned_house.glb", "house.glb"],
+                        weights = [10, 10, 5, 5], k=1
+                    )[0],
+                    (x_loc, y_loc, 0)
+                )
+                #bpy.ops.mesh.primitive_cube_add(size=1, location=(x, y, 0))
 
-    # 3. Create a green material (use_nodes is True by default in Blender 5.0+)
-    mat = bpy.data.materials.new(name="GreenMaterial")
-    bsdf = mat.node_tree.nodes["Principled BSDF"]
-    bsdf.inputs["Base Color"].default_value = (0.0, 0.8, 0.0, 1.0)
-    cube.data.materials.append(mat)
+    bpy.ops.mesh.primitive_cube_add(size=1, location=(0, 0, 0))
 
+    # Add sky light
+    bpy.ops.object.light_add(
+        type="AREA",
+        location=(0, 0, 100)
+    )
 
-    # 4. Add a light source so the cube isn't pitch black
-    bpy.ops.object.light_add(type="POINT", location=(4, -4, 5))
     light = bpy.context.active_object
-    light.data.energy = 1000
+    light.data.energy = 80000
+    light.data.shape = 'SQUARE'
+    light.data.size = 100
 
-    # 5. Add a camera and point it at the cube
-    bpy.ops.object.camera_add(location=(5, -5, 4))
+
+    # Add center highlight light
+    bpy.ops.object.light_add(
+        type="POINT",
+        location=(0,0, 20)
+    )
+
+    light = bpy.context.active_object
+    light.data.energy = 20000
+
+    # Add random light
+    bpy.ops.object.light_add(
+        type="POINT",
+        location=(random.randint(-50,50), random.randint(-50,50), 20)
+    )
+
+    light = bpy.context.active_object
+    light.data.energy = 20000
+
+
+
+    # Add camera
+    bpy.ops.object.camera_add(location=(0, 0, 100))
     camera = bpy.context.active_object
     bpy.context.scene.camera = camera
 
-    # Point camera toward the origin (0, 0, 0)
-    direction = cube.location - camera.location
-    camera.rotation_euler = direction.to_track_quat("-Z", "Y").to_euler()
+    camera.rotation_euler = (0, 0, 0)
+    camera.data.angle = math.radians(100)
 
-    # 6. Configure render settings
+
+    # Configure rendering
     scene = bpy.context.scene
-    scene.render.engine = "BLENDER_EEVEE"
+    scene.render.engine = "BLENDER_WORKBENCH"
 
-    scene.render.filepath = "green_cube.png"  # Update path as needed
+    scene.render.filepath = "scene.png"
     scene.render.resolution_x = 1920
     scene.render.resolution_y = 1080
+    scene.render.resolution_percentage = 100
 
+    # Render
     bpy.ops.render.render(write_still=True)
 
-main()
+if __name__ == "__main__": main()

@@ -2,3 +2,4 @@
 vision/.idea/
 vision/uv.lock
 vision/src/vision/__pycache__/
+vision/src/vision/scene.png
