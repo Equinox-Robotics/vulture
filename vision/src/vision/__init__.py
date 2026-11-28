@@ -37,7 +37,6 @@ def main() -> None:
 
     nodes.clear()
 
-    # Create nodes
     node_output = nodes.new(type="ShaderNodeOutputWorld")
     node_output.location = (400, 0)
 
@@ -65,6 +64,7 @@ def main() -> None:
     links.new(node_sky.outputs["Color"], node_bg.inputs["Color"])
     links.new(node_bg.outputs["Background"], node_output.inputs["Surface"])
 
+    # ground plane
     bpy.ops.mesh.primitive_plane_add(size=200.0, location=(0.0, 0.0, 0.0))
     plane = bpy.context.active_object
     plane.name = "RectPlane"
@@ -143,7 +143,6 @@ def main() -> None:
     scene = bpy.context.scene
     scene.render.engine = 'CYCLES'
 
-    # 5. Lower Output Resolution Percentage
     scene.render.resolution_percentage = 50
     bpy.context.scene.cycles.transparent_max_bounces = 64
 
@@ -157,7 +156,7 @@ def main() -> None:
     if glass_mat:
         glass_mat.use_raytrace_refraction = True
 
-    # Render
+    # Render :D
     bpy.ops.render.render(write_still=True)
 
 if __name__ == "__main__": main()
